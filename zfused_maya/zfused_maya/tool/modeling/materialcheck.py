@@ -5,14 +5,10 @@ import os
 import re
 import maya.cmds as cmds
 import time
+import zfused_maya.node.core.texture as texture
 
-TEXT_NODE = ["file", "imagePlane", "RedshiftNormalMap","RedshiftCameraMap"]
-TEXTURE_ATTR_DICT = {
-    "file" : "fileTextureName",
-    "imagePlane": "imageName",
-    "RedshiftNormalMap":"tex0",
-    "RedshiftCameraMap":"tex0",
-}
+TEXT_NODE = texture.TEXT_NODE
+TEXTURE_ATTR_DICT = texture.TEXTURE_ATTR_DICT
 
 class CheckShader(object):
     def __init__(self):
@@ -32,7 +28,7 @@ class CheckShader(object):
 
         self.allmats = self._get_mat()
         self.assetname = ""
-        
+        self.assettype = ""
 
     def _get_asset_name(self):
         for i in cmds.ls(type = "transform"):
@@ -49,7 +45,7 @@ class CheckShader(object):
         return _t_sg_name,_t_mat_name,_t_tex_name
 
     def _set_filter(self,meshstr):
-        _ture = meshstr.split(self.assetname)[-1]
+        _ture = meshstr.split("{}_{}".format(self.assettype,self.assetname))[-1]
         if _ture.startswith("_"):
             _ture = _ture[1:]
         return "{}_{}".format(self.assetname,_ture)
