@@ -107,11 +107,18 @@ def camera():
     """ check camera
 
     """
+    _extra_camera = ["facial_cam"]
     _cameras = cmds.ls(type = "camera")
     _left_cameras = list(set(_cameras) - set(["frontShape","topShape","perspShape","sideShape"]))
     if _left_cameras:
         info = "场景存在多余摄像机\n"
         for _camera in _left_cameras:
+            _is_extra = False
+            for _cam in _extra_camera:
+                if _cam in _camera:
+                    _is_extra = True
+            if _is_extra:
+                continue
             info += "{}\n".format(_camera)
         return False,info
     return True,None
@@ -227,8 +234,48 @@ def trans_in_mesh():
                     _list.extend(wrongtrans)
     # print (_list)
     if _list:
-        info = u"场景存在嵌套模型\n{}".format("\n".join(_list))
-        print (info)
+        info = "场景存在嵌套模型\n{}".format("\n".join(_list))
+        # print (info)
         return False, info
+    else:
+        return True, None
+
+def isshow(node):
+    _value = True
+    if cmds.getAttr("%s.v"%node) == 0:
+        _value = False
+    while True:
+        node = cmds.listRelatives(node, p = 1, f = True)
+        if not node:
+            break
+        else:
+            node = node[0]
+            if cmds.getAttr("%s.v"%node) == 0:
+                _value = False
+                break
+    return _value
+
+def color_set():
+    '''顶点着色
+    '''
+    _color_set = []
+    _dags = cmds.ls(dag = 1)
+    if not _dags:
+        return True, None
+    for _dag in _dags:
+        _set = cmds.polyColorSet(_dag,q = 1,acs = 1)
+        if _set:
+            _color_set.extend(_set)
+    if _color_set:
+        info = "场景存在顶点着色\n{}".format("\n".join(_color_set))
+        return False ,info
+    else:
+        return True, None
+
+def intermediate_shape():
+    sel = cmds.ls(io = 1,type = "mesh")
+    if sel:
+        info = "场景存在转换的中间模型\n{}".format("\n".join(sel))
+        return False ,info
     else:
         return True, None
